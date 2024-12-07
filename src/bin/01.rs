@@ -8,7 +8,7 @@ fn parse_list(input: &str) -> (Vec<i32>, Vec<i32>) {
     for line in input.lines() {
         let row: Vec<i32> = line
             .split_whitespace()
-            .filter_map(|s| s.parse::<i32>().ok())
+            .filter_map(|s| s.parse().ok())
             .collect();
 
         list_one.push(row[0]);
