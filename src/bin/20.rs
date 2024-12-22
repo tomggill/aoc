@@ -109,16 +109,41 @@ impl RaceTrack {
         }
     }
 
-    fn calculate_cheats(&mut self) -> u64 {
+    fn calculate_cheats_2(&mut self) -> u64 {
         let mut result = 0;
         for (mut position, moment) in self.track.clone() {
             for direction in &self.directions {
                 let cheat_position = position.get_cheat_position(direction);
                 if self.track.contains_key(&cheat_position) {
-                    let cheat_moment = self.track.get(&cheat_position).unwrap();
-                    if *cheat_moment as i64 - moment as i64 > 100 {
+                    let cheat_moment = *self.track.get(&cheat_position).unwrap();
+                    if cheat_moment as i32 - moment as i32 - 2 >= 100 {
                         result += 1;
                     }
+                }
+            }
+        }
+        result
+    }
+
+    fn calculate_cheats_20(&mut self) -> u64 {
+        let mut result = 0;
+        let entries: Vec<_> = self.track.iter().collect();
+        for i in 0..entries.len() {
+            for j in i + 1..entries.len() {
+                let (position1, moment1) = entries[i];
+                let (position2, moment2) = entries[j];
+                let manhattan_distance =
+                    (position1.0 - position2.0).abs() + (position1.1 - position2.1).abs();
+                if manhattan_distance > 20 {
+                    continue;
+                }
+                let skip = if moment1 > moment2 {
+                    (*moment1 as i32 - *moment2 as i32 - manhattan_distance).abs()
+                } else {
+                    (*moment1 as i32 - *moment2 as i32 + manhattan_distance).abs()
+                };
+                if skip >= 100 {
+                    result += 1;
                 }
             }
         }
@@ -129,11 +154,13 @@ impl RaceTrack {
 pub fn part_one(input: &str) -> Option<u64> {
     let mut race_track = RaceTrack::new(input);
     race_track.traverse_path();
-    Some(race_track.calculate_cheats())
+    Some(race_track.calculate_cheats_2())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let mut race_track = RaceTrack::new(input);
+    race_track.traverse_path();
+    Some(race_track.calculate_cheats_20())
 }
 
 #[cfg(test)]
@@ -149,6 +176,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(285));
     }
 }
